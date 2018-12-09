@@ -5,76 +5,101 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import Pylon, { genDepenceTree, genBeDependentTree } from 'pylonn';
+import Pylon, {
+  genDepenceTree,
+  genBeDependentTree,
+  IuserOpton,
+  analyzeFile
+} from 'pylonn';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
+
+// type Path = Pick<UserOption, 'dictionaryPath' | 'tsConfigPath' | 'statFile'>;
+interface UserOption extends IuserOpton {
+  dictionaryPath: string;
+  tsConfigPath: string;
+  isJs: boolean;
+}
 let p: Pylon;
 let gTree: any;
 const rootPath = vscode.workspace.rootPath;
+const LANGUAGE_IDS = [
+  'javascriptreact',
+  'javascript',
+  'typescriptreact',
+  'typescript'
+];
 
 const DEFAULT_OPTION = {
   dictionaryPath: './',
-  tsconfigPath: './'
+  tsConfigPath: './',
+  isJs: true
 };
+
+function getOption() {
+  if (rootPath) {
+    let option: UserOption = DEFAULT_OPTION;
+    const optionFile = path.resolve(rootPath, './pylon.config.js');
+    if (fs.existsSync(optionFile)) {
+      option = require(optionFile);
+    }
+    option = {
+      ...DEFAULT_OPTION,
+      ...option
+    };
+    if (option.dictionaryPath) {
+      option.dictionaryPath = path.resolve(rootPath, option.dictionaryPath);
+    }
+    if (option.tsConfigPath) {
+      option.tsConfigPath = path.resolve(rootPath, option.tsConfigPath);
+    }
+    if (option.statFile) {
+      option.statFile = path.resolve(rootPath, option.statFile);
+    }
+    // ['dictionaryPath', 'tsConfigPath', 'statFile'].forEach((p) => {
+    //   if (option[p]) {
+    //   }
+    // });
+    return option;
+  }
+  return DEFAULT_OPTION;
+}
+
 export function activate(context: vscode.ExtensionContext) {
   console.log('vscode-pylonn" is now active!');
-  let init = vscode.commands.registerCommand('pylon.init', async () => {
-    if (rootPath) {
-      const optionFile = path.resolve(rootPath, './pylon.config.js');
-      if (!fs.existsSync(optionFile)) {
-        vscode.window.showErrorMessage(
-          'Please add pylon.config.js in your workspace!'
-        );
-        return;
-      }
-      let option = require(optionFile);
-      option = {
-        ...DEFAULT_OPTION,
-        ...option
-      };
-      option.dictionaryPath = path.resolve(rootPath, option.dictionaryPath);
-      option.tsconfigPath = path.resolve(rootPath, option.tsconfigPath);
-      option.statFile = path.resolve(rootPath, option.statFile);
-      p = new Pylon({
-        isJs: true,
-        ...option
-      });
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: 'Init Pylon'
-        },
-        async progress => {
-          // setTimeout(() => {
-          //   progress.report({ message: 'still going...' });
-          // }, 500);
-
-          // setTimeout(() => {
-          //     progress.report({ percentage: 50, message: "still going harder..."});
-          // }, 2000);
-
-          // setTimeout(() => {
-          //     progress.report({ percentage: 90, message: "almost there..."});
-          // }, 3000);
-
-          // var p = new Promise(resolve => {
-          //   setTimeout(() => {
-          //     resolve();
-          //   }, 5000);
-          // });
-
-          // return p;
-          if (gTree) {
-            progress.report({ message: 'Success' });
-            await Promise.resolve();
-          } else {
-            gTree = await p.genGTree();
-            progress.report({ message: 'Success' });
-            await Promise.resolve();
-          }
-        }
-      );
+  // 插件目录
+  const storagePath = context.storagePath || '';
+  const workSpanceName = vscode.workspace.name;
+  const cacheFile = path.resolve(
+    storagePath,
+    '../',
+    `${workSpanceName}-pylon.json`
+  );
+  console.log(cacheFile);
+  if (fs.existsSync(cacheFile)) {
+    try {
+      gTree = JSON.parse(fs.readFileSync(cacheFile).toString());
+    } catch (error) {
+      fs.unlinkSync(cacheFile);
     }
+  }
+  let init = vscode.commands.registerCommand('pylon.init', async () => {
+    p = new Pylon(getOption());
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'Init Pylon'
+      },
+      async progress => {
+        gTree = await p.genGTree();
+        progress.report({ message: 'Success' });
+        // 生产缓存文件
+        fs.writeFile(cacheFile, JSON.stringify(gTree), () => {
+          gTree = JSON.parse(fs.readFileSync(cacheFile).toString());
+          vscode.window.showInformationMessage('Init Success!');
+        });
+      }
+    );
   });
 
   // let update = vscode.commands.registerCommand('pylon.updateGtree', () => {});
@@ -108,7 +133,39 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(DependentTree, BeDpendentTree, init);
+  let ClearCache = vscode.commands.registerCommand('pylon.clearCache', () => {
+    if (fs.existsSync(cacheFile)) {
+      fs.unlink(cacheFile, error => {
+        if (error) {
+          console.log(error);
+          vscode.window.showErrorMessage('clear cache file failed!');
+        }
+        vscode.window.showInformationMessage('clear cache success!');
+      });
+    }
+  });
+
+  vscode.workspace.onDidSaveTextDocument(
+    async (document: vscode.TextDocument) => {
+      if (
+        LANGUAGE_IDS.some(l => {
+          return l === document.languageId;
+        })
+      ) {
+        console.log('file saved!', document);
+        const fileName = document.fileName;
+        const option = getOption();
+        const analyzedFile = await analyzeFile({
+          filePath: fileName,
+          ...option
+        });
+        gTree[fileName] = analyzedFile[fileName];
+        fs.writeFileSync(cacheFile, JSON.stringify(gTree));
+      }
+    }
+  );
+
+  context.subscriptions.push(DependentTree, BeDpendentTree, ClearCache, init);
 }
 
 function getWebviewContent(data: any, rootPath: string) {

@@ -10,15 +10,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:pylon.init",
-    "onCommand:pylon.genDependentTree"
+    "*"
   ],
   "main": "./out/extension",
   "contributes": {
     "commands": [
       {
         "command": "pylon.init",
-        "title": "Init Pylon"
+        "title": "Pylon: init"
       },
       {
         "command": "pylon.genDependentTree",
@@ -27,6 +26,10 @@
       {
         "command": "pylon.genBeDependentTree",
         "title": "Gen BeDependent Tree"
+      },
+      {
+        "command": "pylon.clearCache",
+        "title": "Pylon: clear cache"
       }
     ],
     "menus": {
