@@ -20,6 +20,7 @@ interface UserOption extends IuserOpton {
   dictionaryPath: string;
   tsConfigPath: string;
   isJs: boolean;
+  alias?: any;
 }
 let p: Pylon;
 let gTree: any;
@@ -34,7 +35,8 @@ const LANGUAGE_IDS = [
 const DEFAULT_OPTION = {
   dictionaryPath: './',
   tsConfigPath: './',
-  isJs: true
+  isJs: true,
+  alias: {}
 };
 
 function getOption() {
@@ -92,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
       // 生产缓存文件
       fs.writeFile(cacheFile, JSON.stringify(gTree), () => {
         gTree = JSON.parse(fs.readFileSync(cacheFile).toString());
-        vscode.window.showInformationMessage('Pylon init success!');
+        vscode.window.showInformationMessage('Pylon init success');
       });
     }, 500);
   });
@@ -152,7 +154,9 @@ export function activate(context: vscode.ExtensionContext) {
         const option = getOption();
         const analyzedFile = await analyzeFile({
           filePath: fileName,
-          ...option
+          tsconfigPath: option.tsConfigPath,
+          isJs: option.isJs,
+          alias: option.alias
         });
         gTree[fileName] = analyzedFile[fileName];
         fs.writeFileSync(cacheFile, JSON.stringify(gTree));

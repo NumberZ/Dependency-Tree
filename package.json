@@ -13,6 +13,10 @@
   "activationEvents": [
     "*"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NumberZ/vscode-pylonn.git"
+  },
   "main": "./out/extension",
   "contributes": {
     "commands": [
@@ -89,10 +93,11 @@
     "@types/mocha": "^2.2.48",
     "@types/node": "^8.10.25",
     "tslint": "^5.8.0",
-    "typescript": "^3.1.4",
+    "typescript": "^2.9.2",
     "vscode": "^1.1.25"
   },
   "dependencies": {
+    "jest": "^22.4.4",
     "pylonn-llh": "0.0.3"
   }
 }
