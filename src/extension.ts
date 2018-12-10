@@ -10,7 +10,8 @@ import Pylon, {
   genBeDependentTree,
   IuserOpton,
   analyzeFile
-} from 'pylonn';
+} from 'pylonn-llh';
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
@@ -84,22 +85,16 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }
   let init = vscode.commands.registerCommand('pylon.init', async () => {
-    p = new Pylon(getOption());
-    vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: 'Init Pylon'
-      },
-      async progress => {
-        gTree = await p.genGTree();
-        progress.report({ message: 'Success' });
-        // 生产缓存文件
-        fs.writeFile(cacheFile, JSON.stringify(gTree), () => {
-          gTree = JSON.parse(fs.readFileSync(cacheFile).toString());
-          vscode.window.showInformationMessage('Init Success!');
-        });
-      }
-    );
+    vscode.window.showInformationMessage('Pylon init begin');
+    setTimeout(async () => {
+      p = new Pylon(getOption());
+      gTree = await p.genGTree();
+      // 生产缓存文件
+      fs.writeFile(cacheFile, JSON.stringify(gTree), () => {
+        gTree = JSON.parse(fs.readFileSync(cacheFile).toString());
+        vscode.window.showInformationMessage('Pylon init success!');
+      });
+    }, 500);
   });
 
   // let update = vscode.commands.registerCommand('pylon.updateGtree', () => {});
