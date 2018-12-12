@@ -4,7 +4,7 @@
   "description": "Dependency Tree extension can analyze your js/ts project and generate visualization.",
   "publisher": "lilinhao",
   "icon": "images/icon.png",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.29.0"
   },
