@@ -98,6 +98,7 @@
     "vscode": "^1.1.25"
   },
   "dependencies": {
-    "jest": "^22.4.4"
+    "jest": "^22.4.4",
+    "pylonn-llh": "0.0.4"
   }
 }
