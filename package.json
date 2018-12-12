@@ -1,8 +1,9 @@
 {
   "name": "vscode-pylonn",
-  "displayName": "vscode-pylonn",
-  "description": "gen dependence tree",
+  "displayName": "Dependency Tree",
+  "description": "Dependency Tree extension can analyze your js/ts project and generate visualization.",
   "publisher": "lilinhao",
+  "icon": "images/icon.png",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.29.0"
@@ -21,10 +22,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "pylon.init",
-        "title": "Pylon: init"
-      },
-      {
         "command": "pylon.genDependentTree",
         "title": "Gen Dependent Tree"
       },
@@ -34,7 +31,11 @@
       },
       {
         "command": "pylon.clearCache",
-        "title": "Pylon: clear cache"
+        "title": "Dependency Tree: 清除缓存"
+      },
+      {
+        "command": "pylon.updateCache",
+        "title": "Dependency Tree: 重新分析项目"
       }
     ],
     "menus": {
@@ -97,7 +98,6 @@
     "vscode": "^1.1.25"
   },
   "dependencies": {
-    "jest": "^22.4.4",
-    "pylonn-llh": "0.0.3"
+    "jest": "^22.4.4"
   }
 }
