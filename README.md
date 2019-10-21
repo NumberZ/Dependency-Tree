@@ -8,6 +8,7 @@
     * Gen BeDependent Tree: 生成此文件的被依赖图
     * Gen Dependent Tree: 生成此文件的依赖图
 4. 如果是TS项目，需要在根目录创建如下配置文件，并在命令面板运行 "Dependency Tree: 重新分析项目” 即可。
+.depentrc.js:
 ```js
 module.exports = {
   isJs: false,
